@@ -17,11 +17,29 @@
       height: 100%;
       height: 100dvh;
       width: 100vw;
-      background: #fff;
-      color: #111;
+      background: #000;
+      color: #fff;
       font-family: 'LowerResolution', system-ui, sans-serif;
       overflow: hidden;
       overscroll-behavior: none;
+    }
+
+    /* ---- Full-screen video background ---- */
+    .bg {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100dvh;
+      object-fit: cover;
+      z-index: 0;
+    }
+    /* Dark scrim so the bouncing wordmark stays legible over the busy art. */
+    .scrim {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.38);
+      z-index: 1;
+      pointer-events: none;
     }
 
     /* ---- DVD-bounce wordmark ---- */
@@ -45,7 +63,7 @@
          0   -4px 0 rgba(0, 0, 0, 0.75),
          4px  0   0 rgba(0, 0, 0, 0.7),
         -4px  0   0 rgba(0, 0, 0, 0.85),
-         0 0 22px rgba(255, 240, 180, 0.35);
+         0 0 22px rgba(0, 0, 0, 0.5);
       filter: blur(0.55px) contrast(1.05);
       letter-spacing: 0.01em;
       pointer-events: none;
@@ -56,49 +74,16 @@
       z-index: 60;
     }
     body.brand-bounce-ready .brand-bounce { opacity: 1; }
-
-    /* ---- Film grain overlay ---- */
-    /* Oversized so the flicker animation can translate it without exposing
-       an edge. Desaturated fractal noise, multiplied onto the white so it
-       reads as fine gray film grain. */
-    .grain {
-      position: fixed;
-      top: -150%;
-      left: -150%;
-      width: 400%;
-      height: 400%;
-      pointer-events: none;
-      z-index: 70;
-      opacity: 0.28;
-      mix-blend-mode: multiply;
-      background-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='190'%20height='190'%3E%3Cfilter%20id='n'%3E%3CfeTurbulence%20type='fractalNoise'%20baseFrequency='0.82'%20numOctaves='2'%20stitchTiles='stitch'/%3E%3CfeColorMatrix%20type='saturate'%20values='0'/%3E%3C/filter%3E%3Crect%20width='190'%20height='190'%20filter='url(%23n)'/%3E%3C/svg%3E");
-      background-repeat: repeat;
-      background-size: 190px 190px;
-      animation: grainShift 0.6s steps(6) infinite;
-      will-change: transform;
-    }
-    @keyframes grainShift {
-      0%   { transform: translate(0, 0); }
-      10%  { transform: translate(-4%, -5%); }
-      20%  { transform: translate(-9%, 4%); }
-      30%  { transform: translate(5%, -7%); }
-      40%  { transform: translate(-6%, 8%); }
-      50%  { transform: translate(7%, 5%); }
-      60%  { transform: translate(-3%, -9%); }
-      70%  { transform: translate(8%, 3%); }
-      80%  { transform: translate(-8%, -4%); }
-      90%  { transform: translate(4%, 7%); }
-      100% { transform: translate(0, 0); }
-    }
-    @media (prefers-reduced-motion: reduce) {
-      .grain { animation: none; }
-    }
   </style>
 </head>
 <body>
 
+  <video class="bg" autoplay muted loop playsinline>
+    <source src="bg.mp4" type="video/mp4">
+  </video>
+  <div class="scrim"></div>
+
   <div class="brand-bounce">quentin six.</div>
-  <div class="grain" aria-hidden="true"></div>
 
   <script>
     (function () {
@@ -162,8 +147,6 @@
         startBounce();
       }
 
-      // Wait for the custom font so the wordmark's measured width is correct
-      // before we start bouncing (prevents a flash at the fallback size).
       if (document.fonts && document.fonts.ready) {
         document.fonts.ready.then(reveal);
         setTimeout(reveal, 1500); // safety net
