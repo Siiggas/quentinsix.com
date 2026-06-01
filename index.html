@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>quentin six.</title>
+  <style>
+    @font-face {
+      font-family: 'LowerResolution';
+      src: url('LowerResolution-period.ttf') format('truetype');
+      font-display: swap;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      height: 100%;
+      height: 100dvh;
+      width: 100vw;
+      background: #fff;
+      color: #111;
+      font-family: 'LowerResolution', system-ui, sans-serif;
+      overflow: hidden;
+      overscroll-behavior: none;
+    }
+
+    /* ---- DVD-bounce wordmark ---- */
+    .brand-bounce {
+      position: absolute;
+      top: 0;
+      left: 0;
+      transform: translate3d(0, 0, 0);
+      will-change: transform;
+      font-family: 'LowerResolution', system-ui, sans-serif;
+      font-size: clamp(2.2rem, 11vw, 8rem);
+      line-height: 1;
+      white-space: nowrap;
+      color: #fff5c4;
+      text-shadow:
+         3px  3px 0 rgba(0, 0, 0, 0.95),
+        -3px  3px 0 rgba(0, 0, 0, 0.85),
+         3px -3px 0 rgba(0, 0, 0, 0.78),
+        -3px -3px 0 rgba(0, 0, 0, 0.95),
+         0    4px 0 rgba(0, 0, 0, 0.9),
+         0   -4px 0 rgba(0, 0, 0, 0.75),
+         4px  0   0 rgba(0, 0, 0, 0.7),
+        -4px  0   0 rgba(0, 0, 0, 0.85),
+         0 0 22px rgba(255, 240, 180, 0.35);
+      filter: blur(0.55px) contrast(1.05);
+      letter-spacing: 0.01em;
+      pointer-events: none;
+      user-select: none;
+      -webkit-user-select: none;
+      opacity: 0;
+      transition: opacity 1.4s steps(10);
+      z-index: 60;
+    }
+    body.brand-bounce-ready .brand-bounce { opacity: 1; }
+
+    /* ---- Film grain overlay ---- */
+    /* Oversized so the flicker animation can translate it without exposing
+       an edge. Desaturated fractal noise, multiplied onto the white so it
+       reads as fine gray film grain. */
+    .grain {
+      position: fixed;
+      top: -150%;
+      left: -150%;
+      width: 400%;
+      height: 400%;
+      pointer-events: none;
+      z-index: 70;
+      opacity: 0.28;
+      mix-blend-mode: multiply;
+      background-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='190'%20height='190'%3E%3Cfilter%20id='n'%3E%3CfeTurbulence%20type='fractalNoise'%20baseFrequency='0.82'%20numOctaves='2'%20stitchTiles='stitch'/%3E%3CfeColorMatrix%20type='saturate'%20values='0'/%3E%3C/filter%3E%3Crect%20width='190'%20height='190'%20filter='url(%23n)'/%3E%3C/svg%3E");
+      background-repeat: repeat;
+      background-size: 190px 190px;
+      animation: grainShift 0.6s steps(6) infinite;
+      will-change: transform;
+    }
+    @keyframes grainShift {
+      0%   { transform: translate(0, 0); }
+      10%  { transform: translate(-4%, -5%); }
+      20%  { transform: translate(-9%, 4%); }
+      30%  { transform: translate(5%, -7%); }
+      40%  { transform: translate(-6%, 8%); }
+      50%  { transform: translate(7%, 5%); }
+      60%  { transform: translate(-3%, -9%); }
+      70%  { transform: translate(8%, 3%); }
+      80%  { transform: translate(-8%, -4%); }
+      90%  { transform: translate(4%, 7%); }
+      100% { transform: translate(0, 0); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .grain { animation: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="brand-bounce">quentin six.</div>
+  <div class="grain" aria-hidden="true"></div>
+
+  <script>
+    (function () {
+      var brandBounce = document.querySelector('.brand-bounce');
+
+      // Bounce params — lifted from quentinnn.com so it feels identical.
+      var SPEED_X = 78;   // px/sec
+      var SPEED_Y = 57;   // px/sec
+      var DVD_COLORS = [
+        '#ff4d4d', '#ff9933', '#ffea00',
+        '#4dff7a', '#4de0ff', '#b366ff', '#ff66d4'
+      ];
+      var dvdColorIdx = 0;
+      function nextBounceColor() {
+        dvdColorIdx = (dvdColorIdx + 1) % DVD_COLORS.length;
+        brandBounce.style.color = DVD_COLORS[dvdColorIdx];
+      }
+
+      var bx = 0, by = 0;
+      var bdx = SPEED_X, bdy = SPEED_Y;
+      var lastFrameMs = 0;
+
+      function placeBounceStart() {
+        var bw = brandBounce.offsetWidth, bh = brandBounce.offsetHeight;
+        bx = Math.max(0, (window.innerWidth  - bw) / 2);
+        by = Math.max(0, (window.innerHeight - bh) * 0.34);
+        brandBounce.style.transform = 'translate3d(' + bx + 'px, ' + by + 'px, 0)';
+      }
+
+      function bounceTick(nowMs) {
+        var dt = lastFrameMs ? Math.min((nowMs - lastFrameMs) / 1000, 0.05) : 0;
+        lastFrameMs = nowMs;
+        var bw = brandBounce.offsetWidth, bh = brandBounce.offsetHeight;
+        var maxX = Math.max(0, window.innerWidth  - bw);
+        var maxY = Math.max(0, window.innerHeight - bh);
+        bx += bdx * dt;
+        by += bdy * dt;
+        if (bx <= 0)    { bx = 0;    bdx = Math.abs(bdx);  nextBounceColor(); }
+        if (bx >= maxX) { bx = maxX; bdx = -Math.abs(bdx); nextBounceColor(); }
+        if (by <= 0)    { by = 0;    bdy = Math.abs(bdy);  nextBounceColor(); }
+        if (by >= maxY) { by = maxY; bdy = -Math.abs(bdy); nextBounceColor(); }
+        brandBounce.style.transform = 'translate3d(' + bx + 'px, ' + by + 'px, 0)';
+        requestAnimationFrame(bounceTick);
+      }
+
+      function startBounce() {
+        placeBounceStart();
+        brandBounce.style.color = DVD_COLORS[dvdColorIdx];
+        lastFrameMs = 0;
+        requestAnimationFrame(bounceTick);
+      }
+
+      window.addEventListener('resize', function () {
+        var bw = brandBounce.offsetWidth, bh = brandBounce.offsetHeight;
+        bx = Math.min(bx, Math.max(0, window.innerWidth  - bw));
+        by = Math.min(by, Math.max(0, window.innerHeight - bh));
+      });
+
+      function reveal() {
+        document.body.classList.add('brand-bounce-ready');
+        startBounce();
+      }
+
+      // Wait for the custom font so the wordmark's measured width is correct
+      // before we start bouncing (prevents a flash at the fallback size).
+      if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(reveal);
+        setTimeout(reveal, 1500); // safety net
+      } else {
+        window.addEventListener('load', reveal);
+      }
+    })();
+  </script>
+
+</body>
+</html>
