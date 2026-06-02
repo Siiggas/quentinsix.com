@@ -78,32 +78,13 @@
 </head>
 <body>
 
-  <video class="bg" autoplay muted loop playsinline>
-    <source src="bg.mp4" type="video/mp4">
-  </video>
+  <img class="bg" src="giphy.gif" alt="">
   <div class="scrim"></div>
 
   <div class="brand-bounce">quentin six.</div>
 
   <script>
     (function () {
-      // ---- Background video: force playback (browsers often ignore the
-      // autoplay attribute). Retry on tab focus and on first interaction. ----
-      var bgVideo = document.querySelector('video.bg');
-      function playBg() {
-        if (!bgVideo) return;
-        bgVideo.muted = true;
-        var p = bgVideo.play();
-        if (p && p.catch) p.catch(function () {});
-      }
-      playBg();
-      document.addEventListener('visibilitychange', function () {
-        if (!document.hidden) playBg();
-      });
-      ['pointerdown', 'touchstart', 'keydown', 'scroll'].forEach(function (ev) {
-        window.addEventListener(ev, playBg, { passive: true });
-      });
-
       var brandBounce = document.querySelector('.brand-bounce');
 
       // Bounce params - lifted from quentinnn.com so it feels identical.
